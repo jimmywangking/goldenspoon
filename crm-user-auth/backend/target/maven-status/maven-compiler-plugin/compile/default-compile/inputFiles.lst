@@ -3,6 +3,7 @@
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/service/UserService.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/entity/UserPagePermission.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/mapper/RoleMapper.java
+/Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/service/UserPageInstanceService.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/entity/AuditLog.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/mapper/OrgMapper.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/service/OrgService.java
@@ -21,6 +22,7 @@
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/mapper/SysUserMapper.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/dto/CreateUserRequest.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/controller/RoleController.java
+/Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/mapper/UserPageInstanceMapper.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/config/RedisConfig.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/config/PasswordEncoderConfig.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/security/SecurityFilter.java
@@ -33,10 +35,12 @@
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/dto/LoginResponse.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/common/Result.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/mapper/RolePagePermissionMapper.java
+/Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/controller/UserPageInstanceController.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/UserAuthApplication.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/service/AuthService.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/config/AutoFillHandler.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/controller/UserPageContentController.java
+/Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/entity/UserPageInstance.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/controller/PermissionController.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/controller/OrgController.java
 /Users/helloworld/Downloads/AI/20260813D/crm-user-auth/backend/src/main/java/com/example/crm/userauth/module/mapper/UserPageContentMapper.java
