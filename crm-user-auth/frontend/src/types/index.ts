@@ -64,3 +64,14 @@ export interface ApiResult<T> {
   data: T
   timestamp: number
 }
+
+export interface PageInstance {
+  id: number
+  userId: number
+  pageCode: string
+  title: string | null
+  content: string
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
+}

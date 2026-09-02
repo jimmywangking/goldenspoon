@@ -1,0 +1,32 @@
+# Build outputs
+crm-user-auth/backend/target/
+crm-user-auth/frontend/dist/
+
+# Node modules
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Java class files
+*.class
+*.jar
+
+# Maven
+**/target/
+
+# npm cache
+.npm/
+.npa-debug.log

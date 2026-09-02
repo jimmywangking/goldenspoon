@@ -49,6 +49,12 @@ const routes: RouteRecordRaw[] = [
         name: 'Page2',
         component: () => import('@/views/Page2.vue'),
         meta: { requiredPermission: 'PAGE_2' }
+      },
+      {
+        path: 'instances',
+        name: 'PageInstanceManage',
+        component: () => import('@/views/PageInstanceManage.vue'),
+        meta: { requiresAuth: true }
       }
     ]
   }

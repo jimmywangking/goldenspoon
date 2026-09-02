@@ -22,6 +22,7 @@
           <template #title>业务页面</template>
           <el-menu-item index="/page1" v-if="canAccess('PAGE_1')">页面 1</el-menu-item>
           <el-menu-item index="/page2" v-if="canAccess('PAGE_2')">页面 2</el-menu-item>
+          <el-menu-item index="/instances" v-if="canAccess('PAGE_1') || canAccess('PAGE_2')">我的页面</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </el-aside>
