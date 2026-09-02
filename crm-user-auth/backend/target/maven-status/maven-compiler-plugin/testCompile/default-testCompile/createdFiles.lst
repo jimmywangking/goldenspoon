@@ -1,0 +1,5 @@
+com/example/crm/userauth/module/service/UserServiceTest.class
+com/example/crm/userauth/module/service/PermissionServiceTest.class
+com/example/crm/userauth/module/security/SecurityFilterTest.class
+com/example/crm/userauth/UserAuthApplicationTests.class
+com/example/crm/userauth/module/service/OrgServiceTest.class

@@ -1,0 +1,2 @@
+ALTER TABLE user_page_content ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE user_page_content ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
