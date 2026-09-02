@@ -26,7 +26,14 @@ Downloads/AI/20260813D/
 | ORG_ADMIN | 组织管理员 | 自己组织的用户、所有业务页面 |
 | USER | 普通用户 | 按 page_permission 表授权的页面 |
 
-## 常用命令
+## 开发规范
+
+1. 每次代码改动前必须先做 plan（含升级/回退方案）
+2. 代码改动必须对应单元测试，测试全通过后才 commit
+3. 手动测试验证通过后 push 到 GitHub（`git@github.com:jimmywangking/goldenspoon.git`）
+4. push 成功后自动更新本文件、`agent.md`、`docs/database.md` 等所有相关文档
+
+## 测试命令
 
 ### 启动服务
 ```bash
