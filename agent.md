@@ -69,7 +69,8 @@ backend/src/main/resources/db/migration/
   V3__add_role_management.sql
   V4__add_user_page_content.sql
   V5__add_deleted_fields.sql
-  V6__<下一步>            ← 新增时必须按顺序递增
+  V6__add_user_page_instance.sql
+  V7__<下一步>            ← 新增时必须按顺序递增
 ```
 
 - 迁移编号必须连续递增，不能跳号、不能重复。
