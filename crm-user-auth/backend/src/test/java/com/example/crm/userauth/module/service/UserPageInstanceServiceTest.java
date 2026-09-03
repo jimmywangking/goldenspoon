@@ -1,5 +1,6 @@
 package com.example.crm.userauth.module.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.crm.userauth.module.entity.SysUser;
 import com.example.crm.userauth.module.entity.UserPageInstance;
@@ -32,8 +33,10 @@ class UserPageInstanceServiceTest {
 
     @Test
     void listByUser_success() {
-        when(instanceMapper.listByUser(1L, "PAGE_1", 1, 10))
-                .thenReturn(List.of(makeInstance(1L, 1L, "PAGE_1", "内容A")));
+        Page<UserPageInstance> page = new Page<>(1, 10);
+        page.setRecords(List.of(makeInstance(1L, 1L, "PAGE_1", "内容A")));
+        page.setTotal(1L);
+        when(instanceMapper.selectPage(any(Page.class), any(LambdaQueryWrapper.class))).thenReturn(page);
         when(instanceMapper.countByUserAndPageCode(1L, "PAGE_1")).thenReturn(1L);
 
         Page<UserPageInstance> result = service.listByUser(1L, "PAGE_1", 1, 10);
@@ -44,7 +47,9 @@ class UserPageInstanceServiceTest {
 
     @Test
     void listByUser_empty() {
-        when(instanceMapper.listByUser(anyLong(), anyString(), anyInt(), anyInt())).thenReturn(List.of());
+        Page<UserPageInstance> page = new Page<>(1, 10);
+        page.setRecords(List.of());
+        when(instanceMapper.selectPage(any(Page.class), any(LambdaQueryWrapper.class))).thenReturn(page);
         when(instanceMapper.countByUserAndPageCode(anyLong(), anyString())).thenReturn(0L);
 
         Page<UserPageInstance> result = service.listByUser(1L, "PAGE_2", 1, 10);
@@ -57,7 +62,7 @@ class UserPageInstanceServiceTest {
     @Test
     void listAll_adminSuccess() {
         when(instanceMapper.countAllByPage("PAGE_1", null)).thenReturn(3L);
-        when(instanceMapper.listAllByPage(eq("PAGE_1"), isNull(), eq(1), eq(10)))
+        when(instanceMapper.listAllByPage(eq("PAGE_1"), isNull()))
                 .thenReturn(List.of(makeInstance(1L, 1L, "PAGE_1", "")));
 
         Page<UserPageInstance> result = service.listAll("PAGE_1", null, true, 1, 10);

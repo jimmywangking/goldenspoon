@@ -42,6 +42,11 @@ public class GlobalExceptionHandler {
         return Result.fail(400, e.getMessage());
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public Result<?> handleIllegalState(IllegalStateException e) {
+        return Result.fail(400, e.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result<?> handleException(Exception e) {

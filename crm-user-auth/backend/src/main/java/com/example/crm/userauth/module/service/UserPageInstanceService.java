@@ -1,5 +1,6 @@
 package com.example.crm.userauth.module.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.crm.userauth.module.entity.SysUser;
 import com.example.crm.userauth.module.entity.UserPageInstance;
@@ -21,10 +22,16 @@ public class UserPageInstanceService {
     private final SysUserMapper sysUserMapper;
 
     public Page<UserPageInstance> listByUser(Long userId, String pageCode, int current, int size) {
-        Page<UserPageInstance> page = new Page<>(current, size);
-        List<UserPageInstance> records = instanceMapper.listByUser(userId, pageCode, current, size);
+        LambdaQueryWrapper<UserPageInstance> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserPageInstance::getUserId, userId)
+               .eq(UserPageInstance::getIsDeleted, false)
+               .orderByAsc(UserPageInstance::getSortOrder)
+               .orderByAsc(UserPageInstance::getCreatedAt);
+        if (pageCode != null && !pageCode.isBlank()) {
+            wrapper.eq(UserPageInstance::getPageCode, pageCode);
+        }
+        Page<UserPageInstance> page = instanceMapper.selectPage(new Page<>(current, size), wrapper);
         long total = instanceMapper.countByUserAndPageCode(userId, pageCode);
-        page.setRecords(records);
         page.setTotal(total);
         return page;
     }
@@ -35,10 +42,11 @@ public class UserPageInstanceService {
         }
         Long orgId = isAdmin ? null : operatorOrgId;
         long total = instanceMapper.countAllByPage(pageCode, orgId);
-        List<UserPageInstance> records = instanceMapper.listAllByPage(pageCode, orgId, current, size);
-        Page<UserPageInstance> page = new Page<>(current, size);
-        page.setRecords(records);
-        page.setTotal(total);
+        List<UserPageInstance> records = instanceMapper.listAllByPage(pageCode, orgId);
+        int from = Math.min((current - 1) * size, records.size());
+        int to = Math.min(from + size, records.size());
+        Page<UserPageInstance> page = new Page<>(current, size, total);
+        page.setRecords(records.subList(from, to));
         return page;
     }
 
