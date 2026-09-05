@@ -14,4 +14,7 @@ public interface UserPageContentMapper extends BaseMapper<UserPageContent> {
 
     @Select("SELECT c.* FROM user_page_content c JOIN sys_user u ON c.user_id = u.id WHERE c.page_code = #{pageCode} AND u.is_deleted = false ORDER BY c.updated_at DESC")
     java.util.List<UserPageContent> listByPage(@Param("pageCode") String pageCode);
+
+    @Select("SELECT c.* FROM user_page_content c JOIN sys_user u ON c.user_id = u.id WHERE c.page_code = #{pageCode} AND u.is_deleted = false AND u.org_id = #{orgId} ORDER BY c.updated_at DESC")
+    java.util.List<UserPageContent> listByPageAndOrg(@Param("pageCode") String pageCode, @Param("orgId") Long orgId);
 }

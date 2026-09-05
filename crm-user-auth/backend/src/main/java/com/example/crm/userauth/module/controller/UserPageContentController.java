@@ -43,12 +43,14 @@ public class UserPageContentController {
         return Result.ok();
     }
 
-    @Operation(summary = "管理员查看某页面所有用户的内容")
+    @Operation(summary = "查看所有用户页面内容")
     @GetMapping("/{pageCode}/all")
     public Result<List<UserPageContent>> getAllContent(@PathVariable String pageCode) {
         if (!UserContext.isAdmin()) {
-            return Result.fail(403, "无权访问");
+            if (!UserContext.isOrgAdmin()) {
+                return Result.fail(403, "无权访问");
+            }
         }
-        return Result.ok(contentService.listByPage(pageCode));
+        return Result.ok(contentService.listByPage(pageCode, UserContext.isAdmin(), UserContext.getOrgId()));
     }
 }

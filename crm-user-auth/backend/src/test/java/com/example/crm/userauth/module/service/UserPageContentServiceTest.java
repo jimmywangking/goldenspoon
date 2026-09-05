@@ -76,12 +76,22 @@ class UserPageContentServiceTest {
     }
 
     @Test
-    void listByPage_returnsAll() {
+    void listByPage_admin_returnsAll() {
         List<UserPageContent> expected = List.of(new UserPageContent(), new UserPageContent());
         when(contentMapper.listByPage("PAGE_1")).thenReturn(expected);
 
-        List<UserPageContent> result = contentService.listByPage("PAGE_1");
+        List<UserPageContent> result = contentService.listByPage("PAGE_1", true, null);
 
         assertThat(result).hasSize(2);
+    }
+
+    @Test
+    void listByPage_orgAdmin_returnsOrgOnly() {
+        List<UserPageContent> expected = List.of(new UserPageContent());
+        when(contentMapper.listByPageAndOrg("PAGE_1", 3L)).thenReturn(expected);
+
+        List<UserPageContent> result = contentService.listByPage("PAGE_1", false, 3L);
+
+        assertThat(result).hasSize(1);
     }
 }

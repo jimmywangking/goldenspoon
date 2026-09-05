@@ -37,7 +37,10 @@ public class UserPageContentService {
         }
     }
 
-    public List<UserPageContent> listByPage(String pageCode) {
-        return contentMapper.listByPage(pageCode);
+    public List<UserPageContent> listByPage(String pageCode, boolean isAdmin, Long orgId) {
+        if (isAdmin) {
+            return contentMapper.listByPage(pageCode);
+        }
+        return contentMapper.listByPageAndOrg(pageCode, orgId);
     }
 }
