@@ -91,3 +91,12 @@ tail -f /tmp/frontend.log
 - 前端: http://localhost:5173
 - Swagger UI: http://localhost:8080/swagger-ui
 - 数据库: Docker pg-local (postgres:15)
+
+## PAGE_1 3D 模块化住房编辑器
+
+PAGE_1 已升级为 Three.js 3D 编辑器：
+- 左侧：模块库（墙体、地板、屋顶、房间、车库、扩展模块）
+- 中间：3D 场景（支持旋转/缩放/平移查看）
+- 右侧：属性面板（位置、旋转、缩放、颜色编辑）
+- 顶部工具栏：保存设计、导出JSON、导入JSON、查看所有设计（管理员/组织管理员）
+- 权限分层：USER 只能编辑自己的，ORG_ADMIN 可查看本组织所有人，ADMIN 可查看全部
