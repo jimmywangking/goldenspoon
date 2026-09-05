@@ -3,11 +3,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, defineProps, defineEmits } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import * as THREE from 'three'
 
-// @ts-ignore - three.js ESM modules typed separately
-const OrbitControls = (THREE as any).OrbitControls
+let OrbitControls: any = null
 
 interface ModuleConfig {
   id: string
@@ -38,8 +37,15 @@ let mouse = new THREE.Vector2()
 let selectedMesh: THREE.Mesh | null = null
 let moduleMeshes = new Map<string, THREE.Mesh>()
 
+onMounted(async () => {
+  // Dynamic import for OrbitControls (ESM module not in main three package)
+  const controlsModule = await import('three/examples/jsm/controls/OrbitControls' as any)
+  OrbitControls = controlsModule.OrbitControls
+  init()
+})
+
 function init() {
-  if (!containerRef.value) return
+  if (!containerRef.value || !OrbitControls) return
 
   scene = new THREE.Scene()
   scene.background = new THREE.Color(0xf0f2f5)
@@ -179,8 +185,6 @@ watch(() => props.selectedId, (newId) => {
     highlightMesh(moduleMeshes.get(newId)!)
   }
 })
-
-onMounted(init)
 </script>
 
 <style scoped>
