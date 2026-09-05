@@ -43,24 +43,38 @@
     <el-dialog v-model="adminDialogVisible" title="所有用户设计" width="90%" top="5vh">
       <div v-loading="adminLoading">
         <el-table :data="allDesigns" stripe max-height="600">
-          <el-table-column prop="username" label="用户" width="120" />
-          <el-table-column prop="orgName" label="组织" width="120" />
+          <el-table-column prop="userId" label="用户ID" width="80" />
+          <el-table-column label="内容预览" min-width="200">
+            <template #default="{ row }">
+              <el-tag v-if="isJsonArray(row.content)" type="success" size="small">
+                {{ tryParseModules(row.content)?.length || 0 }} 个模块
+              </el-tag>
+              <span v-else class="text-preview">{{ row.content?.substring(0, 40) || '(空)' }}</span>
+            </template>
+          </el-table-column>
           <el-table-column prop="updatedAt" label="更新时间" width="180">
             <template #default="{ row }">
               {{ formatTime(row.updatedAt) }}
             </template>
           </el-table-column>
-          <el-table-column label="模块数量">
-            <template #default="{ row }">
-              {{ tryParseModules(row.content)?.length || 0 }} 个
-            </template>
-          </el-table-column>
           <el-table-column label="操作">
             <template #default="{ row }">
-              <el-button type="primary" link size="small" @click="loadUserDesign(row)">
+              <el-button
+                v-if="isJsonArray(row.content)"
+                type="primary"
+                link
+                size="small"
+                @click="loadUserDesign(row)"
+              >
                 加载到编辑器
               </el-button>
-              <el-button type="info" link size="small" @click="previewDesign(row.content)">
+              <el-button
+                v-if="isJsonArray(row.content)"
+                type="info"
+                link
+                size="small"
+                @click="previewDesign(row.content)"
+              >
                 预览
               </el-button>
             </template>
@@ -117,8 +131,7 @@ const adminLoading = ref(false)
 interface AllDesignItem {
   id: number
   userId: number
-  username: string
-  orgName: string
+  pageCode: string
   content: string
   updatedAt: string
 }
@@ -133,11 +146,33 @@ function genId() {
   return 'mod_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5)
 }
 
+// 辅助：判断内容是否为 JSON 数组（模块数据）
+function isJsonArray(content: string): boolean {
+  if (!content) return false
+  try {
+    const parsed = JSON.parse(content)
+    return Array.isArray(parsed)
+  } catch {
+    return false
+  }
+}
+
+// 辅助：安全解析模块
+function tryParseModules(content: string): ModuleConfig[] | null {
+  if (!content) return null
+  try {
+    const parsed = JSON.parse(content)
+    return Array.isArray(parsed) ? parsed : null
+  } catch {
+    return null
+  }
+}
+
 // 添加模块
 function addModule(template: any) {
   if (!canEdit.value) return
   const id = genId()
-  const newModule = {
+  const newModule: ModuleConfig = {
     id,
     name: template.name,
     position: { x: 0, y: 0, z: 0 },
@@ -151,7 +186,7 @@ function addModule(template: any) {
 }
 
 // 更新模块
-function updateModule(id: string, data: Partial<any>) {
+function updateModule(id: string, data: Partial<ModuleConfig>) {
   modules.value = modules.value.map(m => m.id === id ? { ...m, ...data } : m)
 }
 
@@ -165,7 +200,7 @@ function deleteModule(id: string) {
 function duplicateModule(id: string) {
   const original = modules.value.find(m => m.id === id)
   if (!original) return
-  const newModule = {
+  const newModule: ModuleConfig = {
     ...original,
     id: genId(),
     position: { ...original.position, x: original.position.x + 1 }
@@ -174,22 +209,13 @@ function duplicateModule(id: string) {
   selectedId.value = newModule.id
 }
 
-// 保存/加载模块数据
-function saveModules() {
-  pageApi.saveModules(modules.value)
-}
-
-function tryParseModules(content: string): ModuleConfig[] | null {
-  if (!content) return null
-  try { return JSON.parse(content) } catch { return null }
-}
-
-// 保存到后端
+// 保存到后端 + localStorage
 async function handleSave(content: string) {
   try {
     const data: ModuleConfig[] = JSON.parse(content)
     await pageApi.saveModules(data)
     modules.value = data
+    pageApi.saveToLocalStorage(data)
     ElMessage.success('保存成功')
   } catch (e: any) {
     ElMessage.error(e.message || '保存失败')
@@ -199,17 +225,30 @@ async function handleSave(content: string) {
 // 从后端加载
 async function handleLoad(content: string) {
   try {
-    modules.value = JSON.parse(content)
+    const data: ModuleConfig[] = JSON.parse(content)
+    modules.value = data
+    pageApi.saveToLocalStorage(data)
   } catch {
     ElMessage.error('JSON 格式错误')
   }
 }
 
-// 加载当前用户的设计
+// 加载当前用户的设计（先读 localStorage，再读后端）
 async function loadMyDesign() {
+  // 先尝试从 localStorage 恢复（切换页面回来时保持状态）
+  const cached = pageApi.loadFromLocalStorage()
+  if (cached.length > 0) {
+    modules.value = cached
+  }
+
   try {
     const data = await pageApi.getModules()
-    modules.value = data
+    if (data.length > 0) {
+      modules.value = data
+      pageApi.saveToLocalStorage(data)
+    } else if (cached.length === 0) {
+      modules.value = []
+    }
   } catch (e: any) {
     if (e.response?.status !== 404) {
       console.error('加载设计失败', e)
@@ -222,7 +261,7 @@ async function loadAllDesigns() {
   adminLoading.value = true
   try {
     const res = await pageApi.loadAllDesigns()
-    allDesigns.value = res || []
+    allDesigns.value = (res || []) as AllDesignItem[]
   } catch (e: any) {
     ElMessage.error('加载失败')
   } finally {
@@ -235,8 +274,11 @@ function loadUserDesign(row: AllDesignItem) {
   const parsed = tryParseModules(row.content)
   if (parsed) {
     modules.value = parsed
+    pageApi.saveToLocalStorage(parsed)
     adminDialogVisible.value = false
     ElMessage.success('已加载该用户的设计')
+  } else {
+    ElMessage.warning('该内容不是有效的模块数据')
   }
 }
 
@@ -306,5 +348,15 @@ onMounted(loadMyDesign)
 .preview-info p {
   margin: 4px 0;
   color: #606266;
+}
+
+.text-preview {
+  font-size: 12px;
+  color: #909399;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  max-width: 300px;
 }
 </style>

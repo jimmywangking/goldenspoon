@@ -5,7 +5,9 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, defineProps, defineEmits } from 'vue'
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+
+// @ts-ignore - three.js ESM modules typed separately
+const OrbitControls = (THREE as any).OrbitControls
 
 interface ModuleConfig {
   id: string
@@ -30,7 +32,7 @@ const containerRef = ref<HTMLDivElement>()
 let scene: THREE.Scene | null = null
 let camera: THREE.PerspectiveCamera | null = null
 let renderer: THREE.WebGLRenderer | null = null
-let controls: OrbitControls | null = null
+let controls: any = null
 let raycaster = new THREE.Raycaster()
 let mouse = new THREE.Vector2()
 let selectedMesh: THREE.Mesh | null = null
@@ -85,17 +87,18 @@ function init() {
   function animate() {
     requestAnimationFrame(animate)
     if (controls) controls.update()
-    if (renderer && scene) renderer.render(scene, camera)
+    if (renderer && scene && camera) renderer.render(scene, camera)
   }
   animate()
 
   const handleClick = (event: MouseEvent) => {
     if (props.readonly) return
-    const rect = renderer!.domElement.getBoundingClientRect()
+    if (!renderer || !camera) return
+    const rect = renderer.domElement.getBoundingClientRect()
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
 
-    raycaster.setFromCamera(mouse, camera!)
+    raycaster.setFromCamera(mouse, camera)
     const intersects = raycaster.intersectObjects(Array.from(moduleMeshes.values()))
 
     if (intersects.length > 0) {
