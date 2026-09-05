@@ -1,6 +1,5 @@
 package com.example.crm.userauth.module.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.crm.userauth.module.entity.UserPageContent;
 import com.example.crm.userauth.module.mapper.UserPageContentMapper;
 import lombok.RequiredArgsConstructor;
@@ -19,22 +18,33 @@ public class UserPageContentService {
         return content != null ? content.getContent() : null;
     }
 
-    public void save(Long userId, String pageCode, String content, Long operatorId) {
-        LambdaQueryWrapper<UserPageContent> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(UserPageContent::getUserId, userId).eq(UserPageContent::getPageCode, pageCode);
-        UserPageContent entity = contentMapper.selectOne(wrapper);
-        if (entity == null) {
-            entity = new UserPageContent();
-            entity.setUserId(userId);
-            entity.setPageCode(pageCode);
-            entity.setContent(content);
-            entity.setUpdatedBy(operatorId);
-            contentMapper.insert(entity);
-        } else {
-            entity.setContent(content);
-            entity.setUpdatedBy(operatorId);
-            contentMapper.updateById(entity);
+    public void save(Long userId, String pageCode, String content, Long operatorId, String versionName) {
+        int nextVersion = contentMapper.countByUserAndPage(userId, pageCode) + 1;
+        UserPageContent entity = new UserPageContent();
+        entity.setUserId(userId);
+        entity.setPageCode(pageCode);
+        entity.setContent(content);
+        entity.setUpdatedBy(operatorId);
+        entity.setVersion(nextVersion);
+        entity.setVersionName(versionName);
+        contentMapper.insert(entity);
+    }
+
+    public void restore(Long userId, String pageCode, Long targetId) {
+        UserPageContent target = contentMapper.selectById(targetId);
+        if (target == null || !target.getUserId().equals(userId) || target.getDeletedAt() != null) {
+            throw new IllegalArgumentException("版本不存在或无权限");
         }
+        UserPageContent latest = contentMapper.findByUserAndPage(userId, pageCode);
+        if (latest != null) {
+            latest.setContent(target.getContent());
+            latest.setVersionName("恢复到版本 " + target.getVersion());
+            contentMapper.updateById(latest);
+        }
+    }
+
+    public List<UserPageContent> listVersions(Long userId, String pageCode) {
+        return contentMapper.listVersions(userId, pageCode);
     }
 
     public List<UserPageContent> listByPage(String pageCode, boolean isAdmin, Long orgId) {

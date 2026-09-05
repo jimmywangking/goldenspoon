@@ -5,7 +5,6 @@ import com.example.crm.userauth.module.entity.UserPageContent;
 import com.example.crm.userauth.module.security.UserContext;
 import com.example.crm.userauth.module.service.UserPageContentService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@Tag(name = "页面内容", description = "用户页面JSON内容的读写操作")
+@Tag(name = "页面内容", description = "用户页面JSON内容的读写操作，支持版本控制")
 @RestController
 @RequestMapping("/api/pages")
 @RequiredArgsConstructor
@@ -21,7 +20,7 @@ public class UserPageContentController {
 
     private final UserPageContentService contentService;
 
-    @Operation(summary = "获取当前用户的页面内容", description = "返回该用户该页面的JSON内容字符串")
+    @Operation(summary = "获取当前用户的页面内容")
     @GetMapping("/{pageCode}")
     public Result<String> getContent(@PathVariable String pageCode) {
         Long userId = UserContext.getUserId();
@@ -29,17 +28,28 @@ public class UserPageContentController {
         return Result.ok(content != null ? content : "");
     }
 
-    @Operation(
-        summary = "保存页面内容",
-        description = "覆盖保存当前用户的页面JSON内容",
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "页面内容，格式: {\"content\": \"JSON字符串\"}"
-        )
-    )
-    @PutMapping("/{pageCode}")
+    @Operation(summary = "保存页面内容（创建新版本）")
+    @PostMapping("/{pageCode}")
     public Result<Void> saveContent(@PathVariable String pageCode, @RequestBody Map<String, String> body) {
         Long userId = UserContext.getUserId();
-        contentService.save(userId, pageCode, body.get("content"), userId);
+        String content = body.get("content");
+        String versionName = body.get("versionName");
+        contentService.save(userId, pageCode, content, userId, versionName);
+        return Result.ok();
+    }
+
+    @Operation(summary = "查看当前用户的版本历史")
+    @GetMapping("/{pageCode}/versions")
+    public Result<List<UserPageContent>> listVersions(@PathVariable String pageCode) {
+        Long userId = UserContext.getUserId();
+        return Result.ok(contentService.listVersions(userId, pageCode));
+    }
+
+    @Operation(summary = "恢复到指定版本")
+    @PostMapping("/{pageCode}/versions/{targetId}/restore")
+    public Result<Void> restoreVersion(@PathVariable String pageCode, @PathVariable Long targetId) {
+        Long userId = UserContext.getUserId();
+        contentService.restore(userId, pageCode, targetId);
         return Result.ok();
     }
 

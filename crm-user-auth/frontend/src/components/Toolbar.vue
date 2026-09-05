@@ -4,6 +4,9 @@
       <el-button type="primary" @click="handleSave" :loading="saving">
         <el-icon><Document /></el-icon> 保存设计
       </el-button>
+      <el-button @click="$emit('viewVersions')">
+        <el-icon><Clock /></el-icon> 版本历史
+      </el-button>
       <el-button @click="handleExport">
         <el-icon><Download /></el-icon> 导出 JSON
       </el-button>
@@ -24,8 +27,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Document, Download, Upload, View } from '@element-plus/icons-vue'
+import { ref } from 'vue'
+import { Document, Download, Upload, View, Clock } from '@element-plus/icons-vue'
 
 const props = defineProps<{
   modules: any[]
@@ -38,6 +41,7 @@ const emit = defineEmits<{
   (e: 'save', content: string): void
   (e: 'load', content: string): void
   (e: 'viewAll'): void
+  (e: 'viewVersions'): void
 }>()
 
 const saving = ref(false)

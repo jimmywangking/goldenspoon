@@ -273,19 +273,35 @@ curl -s http://localhost:8080/api/pages/PAGE_1 \
 ```
 **预期：** 返回 JSON 字符串或空字符串
 
-#### 保存页面内容
+#### 保存页面内容（创建新版本）
 ```bash
-curl -s -X PUT http://localhost:8080/api/pages/PAGE_1 \
+curl -s -X POST http://localhost:8080/api/pages/PAGE_1 \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"content":"{\"widgets\":[{\"type\":\"chart\",\"x\":0,\"y\":0}]}"}'
+  -d '{"content":"[{\"id\":\"m1\",\"name\":\"墙体\",\"position\":{\"x\":0,\"y\":0,\"z\":0},\"rotation\":{\"x\":0,\"y\":0,\"z\":0},\"scale\":{\"x\":4,\"y\":3,\"z\":0.2},\"color\":\"#E8E8E8\"}]","versionName":"v1"}'
 ```
+**预期：** 返回 `{"code":200,"message":"success"}`，每次保存生成新版本号
+
+#### 查看版本历史
+```bash
+curl -s http://localhost:8080/api/pages/PAGE_1/versions \
+  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
+```
+**预期：** 返回按 version DESC 排序的版本列表，包含 id/version/versionName/createdAt/content
+
+#### 恢复到指定版本
+```bash
+curl -s -X POST http://localhost:8080/api/pages/PAGE_1/versions/2/restore \
+  -H "Authorization: Bearer $TOKEN"
+```
+**预期：** 当前最新版本的 content 被替换为版本2的内容，versionName 标记为"恢复到版本 N"
 
 #### 管理员查看某页面所有用户的内容
 ```bash
 curl -s http://localhost:8080/api/pages/PAGE_1/all \
   -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
 ```
+**预期：** ADMIN 查看所有用户的所有版本，ORG_ADMIN 只看本组织用户的内容
 
 ---
 
@@ -409,9 +425,15 @@ curl -s "http://localhost:8080/api/instances/admin/all?pageCode=PAGE_1&current=1
 - 可配置每个角色的页面权限（PAGE_1/PAGE_2）
 - 系统角色（isSystem=true）不可删除
 
-### 5.6 页面 1（/page1）
-- 根据用户权限决定是否可访问
-- 有编辑权限 → 显示编辑按钮，可修改并保存 JSON 内容
+### 5.6 页面 1（/page1）— 3D 模块化住房编辑器
+- Three.js 3D 场景，支持旋转/缩放/平移查看
+- 左侧模块库：墙体、地板、屋顶、房间、车库、扩展模块
+- 右侧属性面板：名称、颜色、位置、旋转、缩放编辑
+- **保存设计**：每次保存创建新版本，版本号自动递增，versionName 记录时间戳
+- **版本历史**：点击"版本历史"按钮，查看自己所有历史版本，支持一键恢复到任意版本
+- **导出/导入 JSON**：导出当前设计为 JSON 文件，或从文件导入恢复
+- **查看所有设计**（ADMIN/ORG_ADMIN）：弹出表格显示所有设计（含用户名、组织、版本号），可加载到编辑器或预览
+- USER 只能编辑/查看自己的设计，ORG_ADMIN 可查看本组织所有用户的设计
 - 无权限 → 路由拦截跳转 403
 
 ### 5.7 页面 2（/page2）
@@ -609,9 +631,11 @@ java -jar target/crm-user-auth-1.0.0-SNAPSHOT.jar > /tmp/backend.log 2>&1 &
 | 角色 | PUT | /api/roles/{id}/permissions | ADMIN | 设置角色页面权限 |
 | 权限 | GET | /api/users/{userId}/permissions | ADMIN | 查询用户页面权限 |
 | 权限 | PUT | /api/users/{userId}/permissions | ADMIN | 设置用户页面权限 |
-| 内容 | GET | /api/pages/{pageCode} | 已登录 | 获取当前用户页面内容 |
-| 内容 | PUT | /api/pages/{pageCode} | 可编辑 | 保存页面内容 |
-| 内容 | GET | /api/pages/{pageCode}/all | ADMIN | 查看所有用户页面内容 |
+| 内容 | GET | /api/pages/{pageCode} | 已登录 | 获取当前用户最新页面内容 |
+| 内容 | POST | /api/pages/{pageCode} | 可编辑 | 保存页面内容（创建新版本） |
+| 内容 | GET | /api/pages/{pageCode}/versions | 已登录 | 查询版本历史 |
+| 内容 | POST | /api/pages/{pageCode}/versions/{id}/restore | 已登录 | 恢复到指定版本 |
+| 内容 | GET | /api/pages/{pageCode}/all | ADMIN/ORG_ADMIN | 查看所有用户页面内容 |
 | 实例 | GET | /api/instances | 已登录 | 分页查询我的实例 |
 | 实例 | GET | /api/instances/{id} | 已登录 | 获取实例详情 |
 | 实例 | POST | /api/instances | 已登录 | 创建实例 |
@@ -619,4 +643,4 @@ java -jar target/crm-user-auth-1.0.0-SNAPSHOT.jar > /tmp/backend.log 2>&1 &
 | 实例 | DELETE | /api/instances/{id} | 已登录 | 删除实例 |
 | 实例 | GET | /api/instances/admin/all | ADMIN | 管理员查看所有实例 |
 
-**共计 32 个 API 接口**
+**共计 35 个 API 接口**

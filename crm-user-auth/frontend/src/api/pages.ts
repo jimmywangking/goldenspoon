@@ -7,12 +7,20 @@ export function getPageContent(pageCode: string) {
   return axios.get(`/api/pages/${pageCode}`)
 }
 
-export function savePageContent(pageCode: string, content: string) {
-  return axios.put(`/api/pages/${pageCode}`, { content })
+export function savePageContent(pageCode: string, content: string, versionName?: string) {
+  return axios.post(`/api/pages/${pageCode}`, { content, versionName })
 }
 
 export function getAllPageContent(pageCode: string) {
   return axios.get(`/api/pages/${pageCode}/all`)
+}
+
+export function getPageVersions(pageCode: string) {
+  return axios.get(`/api/pages/${pageCode}/versions`)
+}
+
+export function restorePageVersion(pageCode: string, targetId: number) {
+  return axios.post(`/api/pages/${pageCode}/versions/${targetId}/restore`, {})
 }
 
 export function getModules(): Promise<ModuleConfig[]> {
@@ -27,15 +35,22 @@ export function getModules(): Promise<ModuleConfig[]> {
   })
 }
 
-export function saveModules(modules: ModuleConfig[]): Promise<void> {
-  return savePageContent('PAGE_1', JSON.stringify(modules)).then(() => {})
+export function saveModules(modules: ModuleConfig[], versionName?: string): Promise<void> {
+  return savePageContent('PAGE_1', JSON.stringify(modules), versionName).then(() => {})
 }
 
 export function loadAllDesigns(): Promise<any[]> {
   return getAllPageContent('PAGE_1').then(r => r.data?.data || [])
 }
 
-// 本地持久化，防止切换页面后数据丢失
+export function loadVersions(): Promise<any[]> {
+  return getPageVersions('PAGE_1').then(r => r.data?.data || [])
+}
+
+export function restoreVersion(targetId: number): Promise<void> {
+  return restorePageVersion('PAGE_1', targetId).then(() => {})
+}
+
 export function saveToLocalStorage(modules: ModuleConfig[]) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(modules))

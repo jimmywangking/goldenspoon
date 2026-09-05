@@ -8,6 +8,7 @@
       @save="handleSave"
       @load="handleLoad"
       @view-all="adminDialogVisible = true"
+      @view-versions="versionDialogVisible = true"
     />
 
     <div class="workspace">
@@ -45,6 +46,8 @@
         <el-table :data="allDesigns" stripe max-height="600">
           <el-table-column prop="username" label="用户" width="100" />
           <el-table-column prop="orgName" label="组织" width="120" />
+          <el-table-column prop="version" label="版本" width="70" />
+          <el-table-column prop="versionName" label="版本名" width="120" />
           <el-table-column prop="updatedAt" label="更新时间" width="180">
             <template #default="{ row }">
               {{ formatTime(row.updatedAt) }}
@@ -76,6 +79,43 @@
       </div>
     </el-dialog>
 
+    <!-- 版本历史面板 -->
+    <el-dialog v-model="versionDialogVisible" title="版本历史" width="70%" top="5vh">
+      <div v-loading="versionLoading">
+        <el-table :data="versionList" stripe max-height="500">
+          <el-table-column prop="version" label="版本号" width="90" />
+          <el-table-column prop="versionName" label="版本名称" width="150" />
+          <el-table-column prop="createdAt" label="创建时间" width="180">
+            <template #default="{ row }">
+              {{ formatTime(row.createdAt) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="updatedAt" label="更新时间" width="180">
+            <template #default="{ row }">
+              {{ formatTime(row.updatedAt) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="内容预览" min-width="200">
+            <template #default="{ row }">
+              <span class="text-preview">{{ row.content }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="120">
+            <template #default="{ row }">
+              <el-button
+                type="primary"
+                link
+                size="small"
+                @click="restoreVersion(row)"
+              >
+                恢复此版本
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </el-dialog>
+
     <!-- 预览对话框 -->
     <el-dialog v-model="previewVisible" title="设计预览" width="70%" top="5vh">
       <ThreeScene
@@ -93,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch, watchEffect } from 'vue'
+import { ref, onMounted, computed, watchEffect } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import ThreeScene from '@/components/ThreeScene.vue'
@@ -126,11 +166,28 @@ interface AllDesignItem {
   userId: number
   pageCode: string
   content: string
+  version: number
+  versionName: string | null
   updatedAt: string
   username?: string
   orgName?: string
 }
 const allDesigns = ref<AllDesignItem[]>([])
+
+// 版本历史
+const versionDialogVisible = ref(false)
+const versionLoading = ref(false)
+interface VersionItem {
+  id: number
+  userId: number
+  pageCode: string
+  content: string
+  version: number
+  versionName: string | null
+  createdAt: string
+  updatedAt: string
+}
+const versionList = ref<VersionItem[]>([])
 
 // 预览
 const previewVisible = ref(false)
@@ -204,20 +261,22 @@ function duplicateModule(id: string) {
   selectedId.value = newModule.id
 }
 
-// 保存到后端 + localStorage
+// 保存到后端 + localStorage（新版本：每次保存创建新版本）
 async function handleSave(content: string) {
   try {
     const data: ModuleConfig[] = JSON.parse(content)
-    await pageApi.saveModules(data)
+    await pageApi.saveModules(data, `版本 ${Date.now()}`)
     modules.value = data
     pageApi.saveToLocalStorage(data)
-    ElMessage.success('保存成功')
+    // 刷新版本列表
+    loadVersions()
+    ElMessage.success('保存成功（新版本）')
   } catch (e: any) {
     ElMessage.error(e.message || '保存失败')
   }
 }
 
-// 从后端加载
+// 从后端加载（返回最新版本的 content）
 async function handleLoad(content: string) {
   try {
     const data: ModuleConfig[] = JSON.parse(content)
@@ -228,9 +287,8 @@ async function handleLoad(content: string) {
   }
 }
 
-// 加载当前用户的设计（先读 localStorage，再读后端）
+// 加载当前用户的设计（先读 localStorage，再读后端最新版本）
 async function loadMyDesign() {
-  // 先尝试从 localStorage 恢复（切换页面回来时保持状态）
   const cached = pageApi.loadFromLocalStorage()
   if (cached.length > 0) {
     modules.value = cached
@@ -248,6 +306,32 @@ async function loadMyDesign() {
     if (e.response?.status !== 404) {
       console.error('加载设计失败', e)
     }
+  }
+}
+
+// 加载版本历史
+async function loadVersions() {
+  versionLoading.value = true
+  try {
+    const res = await pageApi.loadVersions()
+    versionList.value = (res || []) as VersionItem[]
+  } catch (e: any) {
+    console.error('加载版本历史失败', e)
+  } finally {
+    versionLoading.value = false
+  }
+}
+
+// 恢复到指定版本
+async function restoreVersion(row: VersionItem) {
+  try {
+    await pageApi.restoreVersion(row.id)
+    // 重新加载最新版本
+    await loadMyDesign()
+    versionDialogVisible.value = false
+    ElMessage.success(`已恢复到版本 ${row.version}`)
+  } catch (e: any) {
+    ElMessage.error(e.message || '恢复失败')
   }
 }
 
@@ -297,7 +381,10 @@ watchEffect(() => {
   }
 })
 
-onMounted(loadMyDesign)
+onMounted(() => {
+  loadMyDesign()
+  loadVersions()
+})
 </script>
 
 <style scoped>

@@ -1,6 +1,5 @@
 package com.example.crm.userauth.module.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.crm.userauth.module.entity.UserPageContent;
 import com.example.crm.userauth.module.mapper.UserPageContentMapper;
 import org.junit.jupiter.api.Test;
@@ -12,6 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -45,33 +45,30 @@ class UserPageContentServiceTest {
     }
 
     @Test
-    void save_newEntry_inserts() {
-        contentService.save(1L, "PAGE_1", "{\"a\":1}", 2L);
+    void save_newEntry_insertsWithVersion() {
+        when(contentMapper.countByUserAndPage(1L, "PAGE_1")).thenReturn(0);
 
-        verify(contentMapper).insert(any(UserPageContent.class));
-    }
-
-    @Test
-    void save_existingEntry_updates() {
-        UserPageContent existing = new UserPageContent();
-        existing.setId(1L);
-        when(contentMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(existing);
-
-        contentService.save(1L, "PAGE_1", "{\"b\":2}", 3L);
-
-        verify(contentMapper).updateById(existing);
-        assertThat(existing.getContent()).isEqualTo("{\"b\":2}");
-    }
-
-    @Test
-    void save_newEntry_setsFields() {
-        contentService.save(1L, "PAGE_1", "hello", 2L);
+        contentService.save(1L, "PAGE_1", "{\"a\":1}", 2L, "v1");
 
         verify(contentMapper).insert(argThat(entity ->
                 entity.getUserId() == 1L
                 && "PAGE_1".equals(entity.getPageCode())
-                && "hello".equals(entity.getContent())
+                && "{\"a\":1}".equals(entity.getContent())
                 && entity.getUpdatedBy() == 2L
+                && entity.getVersion() == 1
+                && "v1".equals(entity.getVersionName())
+        ));
+    }
+
+    @Test
+    void save_existingEntry_createsNewVersion() {
+        when(contentMapper.countByUserAndPage(1L, "PAGE_1")).thenReturn(2);
+
+        contentService.save(1L, "PAGE_1", "{\"b\":2}", 3L, "修改版");
+
+        verify(contentMapper).insert(argThat(entity ->
+                entity.getVersion() == 3
+                && "修改版".equals(entity.getVersionName())
         ));
     }
 
@@ -93,5 +90,86 @@ class UserPageContentServiceTest {
         List<UserPageContent> result = contentService.listByPage("PAGE_1", false, 3L);
 
         assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void listVersions_returnsAllForUser() {
+        List<UserPageContent> versions = List.of(
+            createVersion(2, "v2"),
+            createVersion(1, "v1")
+        );
+        when(contentMapper.listVersions(1L, "PAGE_1")).thenReturn(versions);
+
+        List<UserPageContent> result = contentService.listVersions(1L, "PAGE_1");
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getVersion()).isEqualTo(2);
+        assertThat(result.get(1).getVersion()).isEqualTo(1);
+    }
+
+    @Test
+    void restore_success() {
+        UserPageContent target = new UserPageContent();
+        target.setId(10L);
+        target.setUserId(1L);
+        target.setVersion(1);
+        target.setContent("{\"old\":\"data\"}");
+        target.setDeletedAt(null);
+
+        UserPageContent latest = new UserPageContent();
+        latest.setId(11L);
+        latest.setVersion(3);
+        latest.setContent("{\"current\":\"data\"}");
+
+        when(contentMapper.selectById(10L)).thenReturn(target);
+        when(contentMapper.findByUserAndPage(1L, "PAGE_1")).thenReturn(latest);
+
+        contentService.restore(1L, "PAGE_1", 10L);
+
+        verify(contentMapper).updateById(argThat(entity ->
+                "恢复到版本 1".equals(entity.getVersionName())
+                && "{\"old\":\"data\"}".equals(entity.getContent())
+        ));
+    }
+
+    @Test
+    void restore_notFound_throws() {
+        when(contentMapper.selectById(99L)).thenReturn(null);
+
+        assertThatThrownBy(() -> contentService.restore(1L, "PAGE_1", 99L))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void restore_wrongUser_throws() {
+        UserPageContent target = new UserPageContent();
+        target.setId(10L);
+        target.setUserId(99L);
+        target.setDeletedAt(null);
+
+        when(contentMapper.selectById(10L)).thenReturn(target);
+
+        assertThatThrownBy(() -> contentService.restore(1L, "PAGE_1", 10L))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void restore_softDeleted_throws() {
+        UserPageContent target = new UserPageContent();
+        target.setId(10L);
+        target.setUserId(1L);
+        target.setDeletedAt(java.time.OffsetDateTime.now());
+
+        when(contentMapper.selectById(10L)).thenReturn(target);
+
+        assertThatThrownBy(() -> contentService.restore(1L, "PAGE_1", 10L))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    private UserPageContent createVersion(int v, String name) {
+        UserPageContent c = new UserPageContent();
+        c.setVersion(v);
+        c.setVersionName(name);
+        return c;
     }
 }

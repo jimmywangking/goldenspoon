@@ -16,6 +16,8 @@ public class UserPageContent {
     private String pageCode;
     private String content;
     private Long updatedBy;
+    private Integer version;
+    private String versionName;
 
     @TableField(exist = false)
     private String username;
@@ -28,4 +30,8 @@ public class UserPageContent {
 
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private OffsetDateTime updatedAt;
+
+    private Boolean isDeleted;
+
+    private OffsetDateTime deletedAt;
 }
