@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, watchEffect } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import ThreeScene from '@/components/ThreeScene.vue'
@@ -290,12 +290,12 @@ function formatTime(time?: string) {
   return new Date(time).toLocaleString('zh-CN')
 }
 
-// 管理员和组织管理员可查看所有设计
-watch(() => authStore.isAdmin || authStore.isOrgAdmin, (isAdminOrOrg) => {
-  if (isAdminOrOrg) {
+// 管理员和组织管理员可查看所有设计（用 watchEffect 确保 userInfo 加载后触发）
+watchEffect(() => {
+  if (authStore.isAdmin || authStore.isOrgAdmin) {
     loadAllDesigns()
   }
-}, { immediate: true })
+})
 
 onMounted(loadMyDesign)
 </script>
