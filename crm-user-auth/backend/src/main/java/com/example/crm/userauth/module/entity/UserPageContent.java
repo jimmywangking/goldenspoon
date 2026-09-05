@@ -17,6 +17,12 @@ public class UserPageContent {
     private String content;
     private Long updatedBy;
 
+    @TableField(exist = false)
+    private String username;
+
+    @TableField(exist = false)
+    private String orgName;
+
     @TableField(fill = FieldFill.INSERT)
     private OffsetDateTime createdAt;
 

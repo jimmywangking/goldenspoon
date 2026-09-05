@@ -43,15 +43,8 @@
     <el-dialog v-model="adminDialogVisible" title="所有用户设计" width="90%" top="5vh">
       <div v-loading="adminLoading">
         <el-table :data="allDesigns" stripe max-height="600">
-          <el-table-column prop="userId" label="用户ID" width="80" />
-          <el-table-column label="内容预览" min-width="200">
-            <template #default="{ row }">
-              <el-tag v-if="isJsonArray(row.content)" type="success" size="small">
-                {{ tryParseModules(row.content)?.length || 0 }} 个模块
-              </el-tag>
-              <span v-else class="text-preview">{{ row.content?.substring(0, 40) || '(空)' }}</span>
-            </template>
-          </el-table-column>
+          <el-table-column prop="username" label="用户" width="100" />
+          <el-table-column prop="orgName" label="组织" width="120" />
           <el-table-column prop="updatedAt" label="更新时间" width="180">
             <template #default="{ row }">
               {{ formatTime(row.updatedAt) }}
@@ -134,6 +127,8 @@ interface AllDesignItem {
   pageCode: string
   content: string
   updatedAt: string
+  username?: string
+  orgName?: string
 }
 const allDesigns = ref<AllDesignItem[]>([])
 
