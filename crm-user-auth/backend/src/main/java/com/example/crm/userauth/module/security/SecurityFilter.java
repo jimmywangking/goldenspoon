@@ -35,7 +35,8 @@ public class SecurityFilter extends OncePerRequestFilter {
             "/api/auth/refresh",
             "/h2-console/**",
             "/swagger-ui/**",
-            "/v3/api-docs/**"
+            "/v3/api-docs/**",
+            "/webjars/**"
     };
 
     @Override

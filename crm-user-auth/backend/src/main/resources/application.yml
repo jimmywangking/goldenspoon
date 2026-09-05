@@ -41,3 +41,8 @@ springdoc:
     enabled: true
     operations-sorter: method
     tags-sorter: alpha
+    disable-swagger-default-url: true
+    display-request-duration: true
+    default-model-expand-depth: 2
+    max-displayed-tags: 50
+    url: /v3/api-docs
