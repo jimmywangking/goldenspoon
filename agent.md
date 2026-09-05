@@ -12,8 +12,7 @@
 
 ### 0. Git 仓库
 
-当前项目根目录 `/Users/helloworld/Downloads/AI/20260813D` **不是 Git 仓库**，子目录也没有 `.git`。
-如需 Git 管理，请用户在项目根目录执行 `git init`，之后再遵循提交规范。
+当前项目根目录 `/Users/helloworld/Downloads/AI/20260813D` 是 Git 仓库，分支 main。
 
 ### 1. 子模块范围
 

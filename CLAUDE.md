@@ -8,7 +8,11 @@ Downloads/AI/20260813D/
 │   ├── backend/            # Spring Boot 3.2.5 + MyBatis-Plus + PostgreSQL
 │   └── frontend/           # Vue 3 + Vite + Element Plus + Pinia
 ├── crm-user-auth-test-manual.md  # 测试手册
-└── docs-fix/               # 文档目录
+├── docs-fix/               # 文档目录
+│   ├── 05-crm-user-auth-test-manual.md  # 测试手册（主）
+│   └── crm-user-auth-test-manual.md     # 测试手册（副本）
+├── docs/api.md             # API 接口文档
+└── docs/database.md        # 数据库文档
 ```
 
 ## 技术栈
@@ -85,4 +89,5 @@ tail -f /tmp/frontend.log
 
 - 后端: http://localhost:8080
 - 前端: http://localhost:5173
+- Swagger UI: http://localhost:8080/swagger-ui
 - 数据库: Docker pg-local (postgres:15)
