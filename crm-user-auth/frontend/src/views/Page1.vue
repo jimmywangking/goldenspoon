@@ -43,7 +43,7 @@
     <!-- 管理面板：查看所有用户的设计 -->
     <el-dialog v-model="adminDialogVisible" title="所有用户设计" width="90%" top="5vh">
       <div v-loading="adminLoading">
-        <el-table :data="allDesigns" stripe max-height="600">
+        <el-empty v-if="!adminLoading && allDesigns.length === 0" description="暂无设计数据" /><el-table :data="allDesigns" stripe max-height="600">
           <el-table-column prop="username" label="用户" width="100" />
           <el-table-column prop="orgName" label="组织" width="120" />
           <el-table-column prop="version" label="版本" width="70" />
@@ -337,10 +337,12 @@ async function restoreVersion(row: VersionItem) {
 
 // 加载所有用户设计（管理员和组织管理员）
 async function loadAllDesigns() {
+  console.log("[Page1] 开始加载所有设计...")
   adminLoading.value = true
   try {
     const res = await pageApi.loadAllDesigns()
     allDesigns.value = (res || []) as AllDesignItem[]
+  console.log("[Page1] 加载完成，条数:", allDesigns.value.length, allDesigns.value)
   } catch (e: any) {
     ElMessage.error('加载失败')
   } finally {
@@ -376,6 +378,7 @@ function formatTime(time?: string) {
 
 // 管理员和组织管理员可查看所有设计（用 watchEffect 确保 userInfo 加载后触发）
 watchEffect(() => {
+  console.log("[Page1] watchEffect触发: isAdmin=", authStore.isAdmin, "isOrgAdmin=", authStore.isOrgAdmin, "userInfo=", authStore.userInfo?.role)
   if (authStore.isAdmin || authStore.isOrgAdmin) {
     loadAllDesigns()
   }

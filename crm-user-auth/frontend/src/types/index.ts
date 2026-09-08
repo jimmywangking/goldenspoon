@@ -77,6 +77,23 @@ export interface PageInstance {
   updatedAt: string
 }
 
+export interface Role {
+  id: number
+  name: string
+  code: string
+  description: string
+  isSystem: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface RolePagePermission {
+  roleId: number
+  pageCode: string
+  canView: boolean
+  canEdit: boolean
+}
+
 export interface ModuleConfig {
   id: string
   name: string

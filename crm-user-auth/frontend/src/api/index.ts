@@ -1,5 +1,5 @@
 import axios from '@/utils/request'
-import type { Org, UserDetail, PageResponse, PagePermissionItem, CreateUserRequest, PageInstance } from '@/types'
+import type { Org, UserDetail, PageResponse, PagePermissionItem, CreateUserRequest, PageInstance, Role, RolePagePermission } from '@/types'
 
 export const orgApi = {
   list: (params?: any) => axios.get<PageResponse<Org>>('/api/orgs', { params }),
@@ -40,4 +40,17 @@ export const registerApi = {
   listPending: (current = 1, size = 10) => axios.get<PageResponse<any>>(`/api/auth/pending?page=${current}&size=${size}`),
   approve: (id: number) => axios.post(`/api/auth/${id}/approve`, { action: 'APPROVE' }),
   reject: (id: number) => axios.post(`/api/auth/${id}/approve`, { action: 'REJECT' })
+}
+
+export const roleApi = {
+  list: (params?: { page?: number; size?: number; keyword?: string }) =>
+    axios.get<PageResponse<Role>>('/api/roles', { params }),
+  getById: (id: number) => axios.get<Role>(`/api/roles/${id}`),
+  create: (data: { name: string; code: string; description?: string; isSystem?: boolean }) =>
+    axios.post<Role>('/api/roles', data),
+  update: (id: number, data: Partial<Role>) => axios.put<void>(`/api/roles/${id}`, data),
+  delete: (id: number) => axios.delete<void>(`/api/roles/${id}`),
+  getPermissions: (roleId: number) => axios.get<RolePagePermission[]>(`/api/roles/${roleId}/permissions`),
+  setPermissions: (roleId: number, permissions: RolePagePermission[]) =>
+    axios.put<void>(`/api/roles/${roleId}/permissions`, permissions)
 }

@@ -25,7 +25,7 @@ export function restorePageVersion(pageCode: string, targetId: number) {
 
 export function getModules(): Promise<ModuleConfig[]> {
   return getPageContent('PAGE_1').then(r => {
-    const content = r.data?.data || ''
+    const content = r.data || ''
     if (!content) return []
     try {
       return JSON.parse(content)
@@ -40,11 +40,11 @@ export function saveModules(modules: ModuleConfig[], versionName?: string): Prom
 }
 
 export function loadAllDesigns(): Promise<any[]> {
-  return getAllPageContent('PAGE_1').then(r => r.data?.data || [])
+  return getAllPageContent('PAGE_1').then(r => r.data || [])
 }
 
 export function loadVersions(): Promise<any[]> {
-  return getPageVersions('PAGE_1').then(r => r.data?.data || [])
+  return getPageVersions('PAGE_1').then(r => r.data || [])
 }
 
 export function restoreVersion(targetId: number): Promise<void> {
