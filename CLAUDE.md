@@ -92,6 +92,13 @@ tail -f /tmp/frontend.log
 - Swagger UI: http://localhost:8080/swagger-ui
 - 数据库: Docker pg-local (postgres:15)
 
+## 首页看板
+
+登录后的默认页面（`/`）展示业务看板：
+- KPI 卡片：总用户数、组织总数、待审批数（仅ADMIN）、页面实例数（仅ADMIN）
+- 角色分布条形图（仅ADMIN）：ADMIN / ORG_ADMIN / USER 三类用户占比
+- 快捷入口卡片：跳转到对应功能页（3D编辑器、用户管理、组织管理、角色管理、审批管理）
+
 ## PAGE_1 3D 模块化住房编辑器
 
 PAGE_1 已升级为 Three.js 3D 编辑器：
@@ -121,3 +128,20 @@ PAGE_1 已升级为 Three.js 3D 编辑器：
 **数据库字段**：
 - `sys_user.status`：VARCHAR(20)，值：`PENDING` / `APPROVED` / `REJECTED`
 - Flyway V8：新增 status 列，旧用户自动设为 `APPROVED`
+
+## 角色页面权限配置
+
+角色（role）与业务页面（PAGE_1, PAGE_2）通过 `role_page_permission` 表关联：
+
+| 字段 | 说明 |
+|------|------|
+| `role_id` | FK → role.id |
+| `page_code` | 页面标识（PAGE_1 / PAGE_2） |
+| `can_view` | 是否可查看 |
+| `can_edit` | 是否可编辑（仅当 can_view=true 时有效） |
+
+**前端角色管理页**（`/roles`）：ADMIN 点击「权限配置」展开面板，勾选页面权限后保存。调用 `PUT /api/roles/{id}/permissions`，后端清除旧记录再插入新权限。
+
+**权限层级**（login 时生效）：
+- ADMIN：始终拥有所有页面完全权限（代码硬编码，不查 role_page_permission）
+- ORG_ADMIN / USER：从 `role_page_permission` 读取权限，再叠加 `user_page_permission`（用户级覆盖）
