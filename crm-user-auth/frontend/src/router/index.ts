@@ -27,6 +27,11 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
     children: [
       {
+        path: '',
+        name: 'Home',
+        component: () => import('@/views/HomePage.vue')
+      },
+      {
         path: 'orgs',
         name: 'OrgManage',
         component: () => import('@/views/OrgManagePage.vue'),
