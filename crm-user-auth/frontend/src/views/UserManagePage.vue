@@ -1,45 +1,36 @@
 <template>
-  <div class="page-container">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>用户管理</span>
-          <el-button type="primary" @click="showCreateDialog">新增用户</el-button>
-        </div>
-      </template>
-      <el-table :data="users" v-loading="loading" stripe>
-        <el-table-column prop="username" label="用户名" />
-        <el-table-column prop="realName" label="真实姓名" />
-        <el-table-column prop="email" label="邮箱" />
-        <el-table-column prop="phone" label="电话" />
-        <el-table-column prop="orgName" label="所属组织">
+  <div class="user-container">
+    <div class="page-header">
+      <div>
+        <div class="page-title">用户管理</div>
+        <div class="page-desc">{{ authStore.isAdmin ? '查看全部用户' : '查看本组织用户' }}</div>
+      </div>
+      <el-button type="primary" @click="showCreateDialog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="margin-right:6px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        新增用户
+      </el-button>
+    </div>
+    <el-card shadow="hover" class="table-card">
+      <el-table :data="users" v-loading="loading" stripe class="data-table">
+        <el-table-column prop="username" label="用户名" min-width="120" />
+        <el-table-column prop="realName" label="真实姓名" min-width="100" />
+        <el-table-column prop="email" label="邮箱" min-width="150" />
+        <el-table-column prop="phone" label="电话" min-width="120" />
+        <el-table-column label="所属组织" min-width="120">
           <template #default="{ row }">
-            {{ row.orgName || '个人用户' }}
+            <span class="text-secondary">{{ row.orgName || '个人用户' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="role" label="角色">
+        <el-table-column prop="role" label="角色" min-width="100">
           <template #default="{ row }">
-            <el-tag :type="row.role === 'ADMIN' ? 'warning' : 'info'">{{ row.role }}</el-tag>
+            <el-tag :type="roleTagType(row.role)" size="small" effect="plain">{{ row.role }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="权限">
-          <template #default="{ row }">
-            <el-tag
-              v-for="perm in row.permissions"
-              :key="perm.pageCode"
-              size="small"
-              class="perm-tag"
-              :type="perm.canView ? 'success' : 'info'"
-            >
-              {{ perm.pageCode }}{{ perm.canEdit ? '(可编辑)' : '(只读)' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="250">
+        <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
             <el-button size="small" @click="showEditDialog(row)">编辑</el-button>
-            <el-button size="small" type="warning" @click="showResetPwdDialog(row)">重置密码</el-button>
-            <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button size="small" type="warning" plain @click="showResetPwdDialog(row)">重置密码</el-button>
+            <el-button size="small" type="danger" plain @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -52,8 +43,7 @@
       />
     </el-card>
 
-    <!-- 创建/编辑用户对话框 -->
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑用户' : '新增用户'" width="450px">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑用户' : '新增用户'" width="460px" destroy-on-close>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="用户名" prop="username">
           <el-input v-model="form.username" :disabled="isEdit" />
@@ -71,13 +61,8 @@
           <el-input v-model="form.phone" />
         </el-form-item>
         <el-form-item label="所属组织">
-          <el-select v-model="form.orgId" clearable placeholder="选择组织" style="width: 100%">
-            <el-option
-              v-for="org in orgs"
-              :key="org.id"
-              :label="org.name"
-              :value="org.id"
-            />
+          <el-select v-model="form.orgId" clearable placeholder="选择组织" style="width:100%">
+            <el-option v-for="org in orgs" :key="org.id" :label="org.name" :value="org.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="角色">
@@ -94,8 +79,7 @@
       </template>
     </el-dialog>
 
-    <!-- 重置密码对话框 -->
-    <el-dialog v-model="resetPwdVisible" title="重置密码" width="350px">
+    <el-dialog v-model="resetPwdVisible" title="重置密码" width="380px" destroy-on-close>
       <el-form ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" label-width="80px">
         <el-form-item label="新密码" prop="password">
           <el-input v-model="pwdForm.password" type="password" show-password />
@@ -113,8 +97,10 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { userApi, orgApi } from '@/api'
-import type { UserDetail, CreateUserRequest, Org } from '@/types'
+import { useAuthStore } from '@/stores/auth'
+import type { UserDetail, Org } from '@/types'
 
+const authStore = useAuthStore()
 const loading = ref(false)
 const submitting = ref(false)
 const users = ref<UserDetail[]>([])
@@ -126,14 +112,13 @@ const formRef = ref()
 const page = reactive({ current: 1 })
 const orgs = ref<Org[]>([])
 
-const form = reactive<CreateUserRequest>({ username: '', password: '', realName: '', email: '', phone: '', orgId: undefined, role: 'USER' })
+const form = reactive({ username: '', password: '', realName: '', email: '', phone: '', orgId: undefined as number | undefined, role: 'USER' as string })
 const rules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
   role: [{ required: true, message: '请选择角色', trigger: 'change' }]
 }
 
-// 重置密码
 const resetPwdVisible = ref(false)
 const pwdFormRef = ref()
 const pwdSubmitting = ref(false)
@@ -217,14 +202,27 @@ async function handleResetPwd() {
   }
 }
 
-onMounted(() => {
-  fetchUsers()
-  fetchOrgs()
-})
+function roleTagType(role: string) {
+  if (role === 'ADMIN') return 'danger'
+  if (role === 'ORG_ADMIN') return 'warning'
+  return ''
+}
+
+onMounted(() => { fetchUsers(); fetchOrgs() })
 </script>
 
 <style scoped>
-.page-container { padding: 20px; }
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.perm-tag { margin-right: 4px; }
+.user-container { padding: 28px; }
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.page-title { font-size: 22px; font-weight: 700; color: #1E1B4B; margin-bottom: 4px; }
+.page-desc { font-size: 13px; color: #6B7280; }
+.table-card { border-radius: 16px; border: none; }
+.data-table { border-radius: 12px; overflow: hidden; }
+.text-secondary { color: #6B7280; font-size: 13px; }
+.el-pagination { margin-top: 20px; justify-content: flex-end; }
 </style>

@@ -1,0 +1,106 @@
+/* === GoldenSpoon CRM Design System === */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --color-primary: #7C3AED;
+  --color-primary-light: #A78BFA;
+  --color-primary-dark: #5B21B6;
+  --color-primary-bg: rgba(124, 58, 237, 0.08);
+  --color-accent: #F97316;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-bg: #F5F3FF;
+  --color-surface: #FFFFFF;
+  --color-sidebar: #1E1B4B;
+  --color-sidebar-hover: rgba(255,255,255,0.08);
+  --color-sidebar-active: rgba(124, 58, 237, 0.6);
+  --color-text: #1E1B4B;
+  --color-text-secondary: #6B7280;
+  --color-border: #E5E7EB;
+  --color-border-light: #F3F4F6;
+  --shadow-sm: 0 1px 2px rgba(30, 27, 75, 0.06);
+  --shadow-md: 0 4px 12px rgba(30, 27, 75, 0.1);
+  --shadow-lg: 0 8px 30px rgba(30, 27, 75, 0.12);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body, #app {
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === Global overrides for Element Plus === */
+.el-card {
+  border-radius: var(--radius-lg);
+  border: none;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s;
+}
+.el-card:hover {
+  box-shadow: var(--shadow-md);
+}
+.el-card__header {
+  border-bottom: 1px solid var(--color-border-light);
+  padding: 18px 24px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.el-card__body {
+  padding: 24px;
+}
+
+.el-button--primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  border-radius: var(--radius-sm);
+}
+.el-button--primary:hover, .el-button--primary:focus {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+.el-input__wrapper {
+  border-radius: var(--radius-sm);
+}
+
+.el-table {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.el-table th {
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* === Utility === */
+.page-container { padding: 24px; }
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+.page-desc {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: 24px;
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.el-pagination {
+  margin-top: 20px;
+  justify-content: flex-end;
+}

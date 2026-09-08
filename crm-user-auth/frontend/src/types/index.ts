@@ -6,6 +6,7 @@ export interface UserInfo {
   orgId: number | null
   orgName: string | null
   isAdmin: boolean
+  isOrgAdmin: boolean
   permissions: PagePermission[]
 }
 

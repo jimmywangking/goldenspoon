@@ -24,6 +24,7 @@ public class LoginResponse {
         private Long orgId;
         private String orgName;
         private boolean isAdmin;
+        private boolean isOrgAdmin;
         private PagePermission[] permissions;
     }
 

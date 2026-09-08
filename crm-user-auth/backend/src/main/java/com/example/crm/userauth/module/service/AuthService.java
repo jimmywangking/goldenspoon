@@ -64,7 +64,7 @@ public class AuthService {
         LoginResponse.UserInfo userInfo = new LoginResponse.UserInfo(
                 user.getId(), user.getUsername(), user.getRealName(),
                 user.getRole(), user.getOrgId(), user.getOrgName(),
-                "ADMIN".equals(user.getRole()), pagePerms);
+                "ADMIN".equals(user.getRole()), "ORG_ADMIN".equals(user.getRole()), pagePerms);
 
         return new LoginResponse(token, refreshToken, jwtUtils.getExpirationMs() / 1000, userInfo);
     }
@@ -91,7 +91,7 @@ public class AuthService {
         return new LoginResponse.UserInfo(
                 user.getId(), user.getUsername(), user.getRealName(),
                 user.getRole(), user.getOrgId(), user.getOrgName(),
-                "ADMIN".equals(user.getRole()), pagePerms);
+                "ADMIN".equals(user.getRole()), "ORG_ADMIN".equals(user.getRole()), pagePerms);
     }
 
     public SysUser register(RegisterRequest request) {

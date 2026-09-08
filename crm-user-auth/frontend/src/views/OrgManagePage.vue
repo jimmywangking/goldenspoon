@@ -1,42 +1,44 @@
 <template>
-  <div class="page-container">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>组织管理</span>
-          <el-button type="primary" @click="showCreateDialog">新增组织</el-button>
-        </div>
-      </template>
-      <el-table :data="orgs" v-loading="loading" stripe>
-        <el-table-column prop="name" label="组织名称" />
-        <el-table-column prop="contactName" label="联系人" />
-        <el-table-column prop="contactPhone" label="联系电话" />
-        <el-table-column prop="isActive" label="状态">
+  <div class="org-container">
+    <div class="page-header">
+      <div>
+        <div class="page-title">组织管理</div>
+        <div class="page-desc">{{ authStore.isAdmin ? '查看全部组织' : '管理本组织' }}</div>
+      </div>
+      <el-button type="primary" @click="showCreateDialog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="margin-right:6px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        新增组织
+      </el-button>
+    </div>
+    <el-card shadow="hover" class="table-card">
+      <el-table :data="orgs" v-loading="loading" stripe class="data-table">
+        <el-table-column prop="name" label="组织名称" min-width="160" />
+        <el-table-column prop="contactName" label="联系人" min-width="100" />
+        <el-table-column prop="contactPhone" label="联系电话" min-width="120" />
+        <el-table-column label="状态" min-width="80">
           <template #default="{ row }">
-            <el-tag :type="row.isActive ? 'success' : 'danger'">
+            <el-tag :type="row.isActive ? 'success' : 'danger'" size="small" effect="plain">
               {{ row.isActive ? '正常' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200">
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
             <el-button size="small" @click="showEditDialog(row)">编辑</el-button>
-            <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button size="small" type="danger" plain @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
       <el-pagination
         v-if="total > 0"
-        layout="total, sizes, prev, pager, next"
+        layout="total, prev, pager, next"
         :total="total"
         v-model:current-page="page.current"
-        v-model:page-size="page.size"
         @current-change="fetchOrgs"
-        @size-change="fetchOrgs"
       />
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑组织' : '新增组织'" width="400px">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑组织' : '新增组织'" width="440px" destroy-on-close>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="组织名称" prop="name">
           <el-input v-model="form.name" />
@@ -60,8 +62,10 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { orgApi } from '@/api'
+import { useAuthStore } from '@/stores/auth'
 import type { Org } from '@/types'
 
+const authStore = useAuthStore()
 const loading = ref(false)
 const submitting = ref(false)
 const orgs = ref<Org[]>([])
@@ -70,8 +74,7 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 const editId = ref<number | null>(null)
 const formRef = ref()
-
-const page = reactive({ current: 1, size: 10 })
+const page = reactive({ current: 1 })
 
 const form = reactive({ name: '', contactName: '', contactPhone: '' })
 const rules = { name: [{ required: true, message: '请输入组织名称', trigger: 'blur' }] }
@@ -79,7 +82,7 @@ const rules = { name: [{ required: true, message: '请输入组织名称', trigg
 async function fetchOrgs() {
   loading.value = true
   try {
-    const res = await orgApi.list({ current: page.current, size: page.size })
+    const res = await orgApi.list({ current: page.current, size: 10 })
     orgs.value = res.data.records
     total.value = res.data.total
   } finally {
@@ -131,6 +134,16 @@ onMounted(fetchOrgs)
 </script>
 
 <style scoped>
-.page-container { padding: 20px; }
-.card-header { display: flex; justify-content: space-between; align-items: center; }
+.org-container { padding: 28px; }
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.page-title { font-size: 22px; font-weight: 700; color: #1E1B4B; margin-bottom: 4px; }
+.page-desc { font-size: 13px; color: #6B7280; }
+.table-card { border-radius: 16px; border: none; }
+.data-table { border-radius: 12px; overflow: hidden; }
+.el-pagination { margin-top: 20px; justify-content: flex-end; }
 </style>
