@@ -63,6 +63,8 @@ class UserAuthApplicationTests {
         user.setPassword("$2a$12$hashed");
         user.setRole("USER");
         user.setIsActive(true);
+        user.setStatus("APPROVED");
+        user.setStatus("APPROVED");
         user.setRealName("测试用户");
 
         when(sysUserMapper.findByUsername("testuser")).thenReturn(user);
@@ -104,6 +106,7 @@ class UserAuthApplicationTests {
         user.setPassword("$2a$12$hashed");
         user.setRole("USER");
         user.setIsActive(true);
+        user.setStatus("APPROVED");
 
         when(sysUserMapper.findByUsername("testuser")).thenReturn(user);
         when(passwordEncoder.matches("wrongpass", "$2a$12$hashed")).thenReturn(false);

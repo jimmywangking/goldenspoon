@@ -14,7 +14,7 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
     @Select("SELECT username FROM sys_user WHERE username = #{username} AND is_deleted = false LIMIT 1")
     String findUsername(@Param("username") String username);
 
-    @Select("SELECT u.id, u.username, u.password, u.real_name, u.role, u.is_active, " +
+    @Select("SELECT u.id, u.username, u.password, u.real_name, u.role, u.is_active, u.status, " +
             "       o.id as org_id, o.name as org_name " +
             "FROM sys_user u LEFT JOIN org o ON u.org_id = o.id " +
             "WHERE u.username = #{username} AND u.is_deleted = false LIMIT 1")

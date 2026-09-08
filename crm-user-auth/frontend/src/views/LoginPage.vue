@@ -40,7 +40,10 @@
           </el-button>
         </el-form-item>
       </el-form>
-      <div class="login-hint">默认管理员: admin / admin123</div>
+      <div class="login-footer">
+        <span class="login-hint">默认管理员: admin / admin123</span>
+        <router-link to="/register" class="register-link">还没有账号？立即注册</router-link>
+      </div>
     </el-card>
   </div>
 </template>

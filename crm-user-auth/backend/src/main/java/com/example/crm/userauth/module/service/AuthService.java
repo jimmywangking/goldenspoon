@@ -1,8 +1,11 @@
 package com.example.crm.userauth.module.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.crm.userauth.module.dto.LoginRequest;
 import com.example.crm.userauth.module.dto.LoginResponse;
+import com.example.crm.userauth.module.dto.RegisterRequest;
+import com.example.crm.userauth.module.dto.RegistrationDTO;
 import com.example.crm.userauth.module.entity.SysUser;
 import com.example.crm.userauth.module.entity.UserPagePermission;
 import com.example.crm.userauth.module.mapper.SysUserMapper;
@@ -12,7 +15,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,6 +35,9 @@ public class AuthService {
         SysUser user = sysUserMapper.findByUsername(request.getUsername());
         if (user == null || !user.getIsActive()) {
             throw new IllegalArgumentException("用户名或密码错误");
+        }
+        if (!"APPROVED".equals(user.getStatus())) {
+            throw new IllegalArgumentException("账户待审批，请等待管理员通过");
         }
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("用户名或密码错误");
@@ -86,4 +94,47 @@ public class AuthService {
                 "ADMIN".equals(user.getRole()), pagePerms);
     }
 
+    public SysUser register(RegisterRequest request) {
+        if (sysUserMapper.findUsername(request.getUsername()) != null) {
+            throw new IllegalArgumentException("用户名已存在");
+        }
+        SysUser user = new SysUser();
+        user.setUsername(request.getUsername());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setEmail(request.getEmail());
+        user.setPhone(request.getPhone());
+        user.setRealName(request.getRealName());
+        user.setOrgId(request.getOrgId());
+        user.setRole("USER");
+        user.setIsActive(true);
+        user.setStatus("PENDING");
+        sysUserMapper.insert(user);
+        return user;
+    }
+
+    public Page<RegistrationDTO> getPendingRegistrations(int page, int size) {
+        Page<SysUser> p = sysUserMapper.selectPage(
+                new Page<>(page, size),
+                new LambdaQueryWrapper<SysUser>()
+                        .eq(SysUser::getStatus, "PENDING")
+                        .eq(SysUser::getIsDeleted, false)
+                        .orderByDesc(SysUser::getCreatedAt));
+        Page<RegistrationDTO> result = new Page<>(p.getCurrent(), p.getSize(), p.getTotal());
+        result.setRecords(p.getRecords().stream()
+                .map(RegistrationDTO::fromEntity)
+                .collect(Collectors.toList()));
+        return result;
+    }
+
+    public void approve(Long id, boolean approved) {
+        SysUser user = sysUserMapper.selectById(id);
+        if (user == null || user.getIsDeleted()) {
+            throw new IllegalArgumentException("用户不存在");
+        }
+        if (!"PENDING".equals(user.getStatus())) {
+            throw new IllegalArgumentException("该用户不是待审批状态");
+        }
+        user.setStatus(approved ? "APPROVED" : "REJECTED");
+        sysUserMapper.updateById(user);
+    }
 }

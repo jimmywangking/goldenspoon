@@ -33,3 +33,11 @@ export const userApi = {
   setPermissions: (userId: number, permissions: PagePermissionItem[]) =>
     axios.put(`/api/users/${userId}/permissions`, { userId, permissions })
 }
+
+export const registerApi = {
+  submit: (data: { username: string; realName: string; password: string; email?: string }) =>
+    axios.post('/api/auth/register', data),
+  listPending: (current = 1, size = 10) => axios.get<PageResponse<any>>(`/api/auth/pending?page=${current}&size=${size}`),
+  approve: (id: number) => axios.post(`/api/auth/${id}/approve`, { action: 'APPROVE' }),
+  reject: (id: number) => axios.post(`/api/auth/${id}/approve`, { action: 'REJECT' })
+}

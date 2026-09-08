@@ -162,6 +162,7 @@ class AuthServiceTest {
         user.setPassword("$2a$12$hash");
         user.setRole(role);
         user.setIsActive(true);
+        user.setStatus("APPROVED");
         user.setRealName(username + "名");
         user.setOrgId(orgId);
         user.setOrgName(orgName);

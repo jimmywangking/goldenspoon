@@ -10,6 +10,12 @@ const routes: RouteRecordRaw[] = [
     meta: { public: true }
   },
   {
+    path: '/register',
+    name: 'Register',
+    component: () => import('@/views/RegisterPage.vue'),
+    meta: { public: true }
+  },
+  {
     path: '/403',
     name: 'Forbidden',
     component: () => import('@/views/Error403.vue'),
@@ -36,6 +42,12 @@ const routes: RouteRecordRaw[] = [
         path: 'roles',
         name: 'RoleManage',
         component: () => import('@/views/RoleManagePage.vue'),
+        meta: { requiresAdmin: true }
+      },
+      {
+        path: 'approvals',
+        name: 'AdminApproval',
+        component: () => import('@/views/AdminApprovalPage.vue'),
         meta: { requiresAdmin: true }
       },
       {
@@ -99,7 +111,6 @@ router.beforeEach(async (to, _from, next) => {
   next()
 })
 
-// Handle navigation duplication gracefully (e.g. login redirect)
 router.onError(err => {
   if (err && typeof err === 'object' && 'type' in err && err.type === 'NavigationDuplicated') {
     return

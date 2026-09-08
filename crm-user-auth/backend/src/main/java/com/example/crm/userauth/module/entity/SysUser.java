@@ -25,6 +25,7 @@ public class SysUser {
     private String role;
     private Boolean isOrgAdmin;
     private Boolean isActive;
+    private String status; // PENDING, APPROVED, REJECTED
 
     @TableField(fill = FieldFill.INSERT)
     private OffsetDateTime createdAt;

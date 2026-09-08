@@ -18,6 +18,9 @@
         <el-menu-item index="/roles" v-if="showRoles">
           <span>角色管理</span>
         </el-menu-item>
+        <el-menu-item index="/approvals" v-if="showApprovals">
+          <span>审批管理</span>
+        </el-menu-item>
         <el-sub-menu index="pages">
           <template #title>业务页面</template>
           <el-menu-item index="/page1" v-if="canAccess('PAGE_1')">页面 1</el-menu-item>
@@ -96,6 +99,7 @@ function canAccess(pageCode: string): boolean {
 const showOrgs = computed(() => authStore.isAdmin || authStore.isOrgAdmin)
 const showUsers = computed(() => authStore.isAdmin || authStore.isOrgAdmin)
 const showRoles = computed(() => authStore.isAdmin)
+const showApprovals = computed(() => authStore.isAdmin)
 
 async function handleCommand(command: string) {
   if (command === 'logout') {
