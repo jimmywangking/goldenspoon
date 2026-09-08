@@ -101,3 +101,23 @@ PAGE_1 已升级为 Three.js 3D 编辑器：
 - 顶部工具栏：保存设计（每次创建新版本）、版本历史、导出JSON、导入JSON、查看所有设计（管理员/组织管理员）
 - **版本控制**：每次保存创建新版本（version 自动递增），可查看历史并恢复到任意版本
 - 权限分层：USER 只能编辑自己的，ORG_ADMIN 可查看本组织所有人，ADMIN 可查看全部
+
+## 用户注册审批流程
+
+新用户注册需管理员审批后才能登录：
+
+**流程**：
+1. 新用户访问 `/register` 页面注册（公开接口，无需登录）
+2. 注册后状态为 `PENDING`，登录被拒绝："账户待审批，请等待管理员通过"
+3. 管理员登录 → 左侧菜单"审批管理" → 查看待审批列表
+4. 管理员点击"通过"或"拒绝"
+5. 审批通过后用户可正常登录
+
+**API**：
+- `POST /api/auth/register` — 公开，注册新用户（状态 PENDING）
+- `GET /api/auth/pending?page=1&size=10` — 仅 ADMIN，查询待审批用户列表
+- `POST /api/auth/{id}/approve` — 仅 ADMIN，审批通过/拒绝
+
+**数据库字段**：
+- `sys_user.status`：VARCHAR(20)，值：`PENDING` / `APPROVED` / `REJECTED`
+- Flyway V8：新增 status 列，旧用户自动设为 `APPROVED`
